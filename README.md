@@ -10,6 +10,8 @@ The dataset contains ~148K charging session records from 26 city-owned stations 
 
 The forecasting horizon is **7 days ahead**, motivated by the practical need for weekly grid capacity planning. External exogenous variables (temperature, day of week, holiday indicator) are incorporated for SARIMAX modelling.
 
+As an extension, a zero-shot foundation-model benchmark is added using Google's **TimesFM** to compare a pre-trained model against the classical and deep-learning approaches.
+
 ## Repository Structure
 
 ```
@@ -21,7 +23,8 @@ ev-charging-forecasting/
 │   ├── 02_stationarity.ipynb
 │   ├── 03_baselines.ipynb
 │   ├── 04_sarima.ipynb
-│   └── 05_lstm.ipynb
+│   ├── 05_lstm.ipynb
+│   └── 06_timesfm.ipynb
 ├── scripts/               # Utility scripts
 ├── .gitignore
 └── README.md
@@ -49,9 +52,11 @@ pip install -r requirements.txt
 | `03_baselines.ipynb` | Naive forecasts: historical mean, last value, seasonal baseline (MAPE) |
 | `04_sarima.ipynb` | SARIMA/SARIMAX: AIC grid search, residual diagnostics (Ljung-Box), forecasting |
 | `05_lstm.ipynb` | LSTM model: sequence preparation, training, comparison with SARIMA |
+| `06_timesfm.ipynb` | *Extra:* zero-shot forecast with Google TimesFM (foundation model), benchmarked against SARIMA and LSTM |
 
 ## Tech Stack
 
 - Python 3.11, pandas, statsmodels (SARIMAX), scikit-learn
 - PyTorch (LSTM), matplotlib
+- TimesFM (`timesfm[torch]`, HF checkpoint `google/timesfm-2.0-500m-pytorch`)
 - Weather data via Open-Meteo API
