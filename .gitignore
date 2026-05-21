@@ -10,3 +10,16 @@ venv/
 
 # OS
 .DS_Store
+
+# Local class material — do not push
+notebooks-clase/
+
+# LaTeX build artifacts (we keep .tex source + final .pdf, drop the rest)
+PAPER/*.aux
+PAPER/*.bbl
+PAPER/*.blg
+PAPER/*.log
+PAPER/*.out
+PAPER/*.fls
+PAPER/*.fdb_latexmk
+PAPER/*.synctex.gz

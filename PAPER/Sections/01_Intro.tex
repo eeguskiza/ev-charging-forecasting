@@ -1,0 +1,65 @@
+Electric vehicles are spreading fast, and the grid has noticed. Public
+charging stations behave like a new layer of distributed load that is
+neither uniform nor predictable: a single station can swing from idle
+on a Saturday to peak demand on a Tuesday morning, and the swings carry
+weekly seasonality, weather sensitivity and the occasional holiday
+shock. For grid operators and station owners this matters because
+weekly capacity planning, maintenance scheduling and energy procurement
+all benefit from forecasting demand at least a week ahead. That is the
+problem we picked.
+
+Boulder, Colorado is a convenient laboratory for this question. The
+city has run a network of 26 public level-2 stations since 2018, and
+it publishes every charging session through its Open Data portal.
+The dataset we work with contains 148\,136 individual sessions logged
+between August 2018 and November 2023 --- five and a half years of
+real-world data, which is long enough to capture multiple annual
+cycles, the COVID-19 disruption and the post-pandemic recovery. Each
+record carries the station name, the start and end timestamps, the
+charging duration, the energy delivered (kWh) and the estimated
+greenhouse gas savings. We aggregate by station-day, focus on the
+station with the highest session volume (N~Boulder Rec~1, 16\,278
+sessions), and treat the resulting daily kWh series as our forecasting
+target.
+
+The horizon is seven days ahead. We chose a week because (a) it covers
+a full weekday-weekend cycle and (b) most distribution utilities plan
+on a rolling-week basis, so a forecast on this scale is what an
+operator would actually use. The proposal we wrote back in April 2026
+already set this horizon and committed us to compare three families of
+models: naive baselines, SARIMA, and LSTM. What changed along the way
+is that we scaled up. After working through the SARIMA family and the
+LSTM, we ran a head-to-head between two zero-shot foundation models
+that have appeared since the proposal was written (Google's TimesFM
+and Amazon's Chronos), and finally implemented a PatchTST transformer
+from scratch in PyTorch with an ensemble of seeds. We did not
+implement CAT-Former, which the proposal flagged as the closest
+published state of the art on this dataset, but we read the paper and
+take it as a benchmark for the discussion.
+
+This paper is the wrap-up of the project: it documents the dataset,
+the protocol, the eighteen models we ran under that protocol, and the
+honest claim we can make about beating the state of the art (we beat
+the strongest model in our own leaderboard; we do not claim to beat
+the published numbers, which use different units and station
+selections --- see Section~\ref{sec:models} and our discussion).
+Section~\ref{sec:related} reviews related work,
+Section~\ref{sec:data} describes the dataset, preprocessing and
+evaluation protocol, Section~\ref{sec:models} walks through each
+model family with the leaderboard at the end, and
+Section~\ref{sec:conclusions} closes with conclusions and the
+honest limitations we found.
+
+\medskip
+\noindent
+\textbf{What is our contribution?} The PatchTST architecture itself is
+not ours --- it comes from Nie et al.~\cite{nie2023patchtst}. What we
+did add is: (i)~an implementation from scratch in PyTorch that lives
+in the project repository, with RevIN~\cite{kim2022revin} on the
+target channel and channel-mixed patching over four input channels
+(energy, temperature, weekend flag, holiday flag); (ii)~a three-seed
+ensemble strategy that cuts inference variance by about 7\% MAE; and
+(iii)~a small-mean ensemble with the LSTM that we picked \emph{before}
+looking at the test scores, which gave the best model overall.
+Everything is reproducible from the repository.\footnote{Repository:
+\url{https://github.com/eeguskiza/ev-charging-forecasting}}

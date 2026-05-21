@@ -1,0 +1,100 @@
+% LLNCS macro package for Springer Computer Science proceedings
+% Version 2.21 of 2022/01/12
+
+\documentclass[runningheads]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta, positioning, calc}
+
+% Default figure path
+\graphicspath{{Images/}}
+
+% Tighter float spacing
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{6pt plus 1pt minus 1pt}
+\setlength{\floatsep}{6pt plus 1pt minus 1pt}
+
+\begin{document}
+
+\title{Short-Term EV Charging Demand Forecasting in\\
+Boulder, Colorado: from SARIMA Baselines to a\\
+From-Scratch PatchTST + LSTM Ensemble}
+
+\titlerunning{Short-term EV charging demand forecasting in Boulder, CO}
+
+\author{Alexander Jauregui Orue\inst{1} \and
+Eneko Alvarez Mendia\inst{1} \and
+Erik Eguskiza Aranda\inst{1}}
+
+\authorrunning{A. Jauregui, E. Alvarez, E. Eguskiza}
+
+\institute{Universidad de Deusto, Faculty of Engineering, Bilbao, Spain\\
+B.Sc.\ in Computer Engineering \& Data Science / AI\\
+\email{\{a.jauregui, eneko.alvarez, e.eguskiza\}@opendeusto.es}}
+
+\maketitle
+
+\begin{abstract}
+We forecast daily energy demand at the busiest public EV charging station in
+Boulder, Colorado (N~Boulder Rec~1, 16\,278 sessions aggregated into 1\,927
+daily observations between Aug.~2018 and Nov.~2023). The horizon is seven days
+ahead, which matches the weekly cadence of grid capacity planning. Eighteen
+models are compared under the same rolling-origin protocol: five naive
+baselines, the full classical (S)ARIMA / (S)ARIMAX / AutoARIMA family, an LSTM
+with hyper-parameter sweep, four foundation models in zero-shot mode (Google
+TimesFM 1.0 and 2.0, Amazon Chronos-T5 base and large), and a from-scratch
+PatchTST transformer with RevIN, channel-mixed exogenous variables and a
+three-seed ensemble. A simple-mean ensemble of PatchTST and LSTM is the best
+model on this leaderboard, with MAE $25.09 \pm 9.36$~kWh; it beats the best
+classical model (ARIMAX (2,1,3), MAE $25.52 \pm 14.38$~kWh) on the mean and
+cuts the standard deviation by roughly 35\%. The result reproduces the
+qualitative finding reported by three peer-reviewed papers that use this
+dataset (Koohfar~2023, Wu/Chowdhury~2025, Kyriakopoulos~2025): transformers
+outperform the (S)ARIMA family on Boulder EV data. We do \emph{not} claim to
+beat their published numbers directly --- their metrics are reported in
+normalised units and on different station selections --- but our experiment
+gives an apples-to-apples local comparison spanning every major model family.
+\keywords{EV charging demand \and Time series forecasting \and SARIMA \and
+LSTM \and PatchTST \and Foundation models \and Ensemble.}
+\end{abstract}
+
+% -------------------------------------------------------
+\section{Introduction}
+\label{sec:intro}
+\input{Sections/01_Intro}
+
+% -------------------------------------------------------
+\section{Related Work}
+\label{sec:related}
+\input{Sections/02_RelatedWork}
+
+% -------------------------------------------------------
+\section{Dataset and Methodology}
+\label{sec:data}
+\input{Sections/03_DataAndMethod}
+
+% -------------------------------------------------------
+\section{Models and Results}
+\label{sec:models}
+\input{Sections/04_ModelsAndResults}
+
+% -------------------------------------------------------
+\section{Conclusions and Future Work}
+\label{sec:conclusions}
+\input{Sections/05_Conclusions}
+
+% -------------------------------------------------------
+\bibliographystyle{splncs04}
+\bibliography{bibliography.bib}
+
+\end{document}

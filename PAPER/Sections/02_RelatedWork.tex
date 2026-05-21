@@ -1,0 +1,130 @@
+Work on EV charging demand forecasting has moved in roughly three
+waves: classical statistical models in the 2010s, deep recurrent
+networks around 2018--2022, and transformer / foundation models from
+2023 onwards. We summarise each wave below and place our work inside
+the landscape.
+
+\subsection{Classical Statistical Models}
+
+The first generation of papers attacked EV demand the same way the
+Box-Jenkins literature attacks any seasonal series: ARMA, ARIMA and
+SARIMA, with parameter selection by AIC and residual diagnostics by
+Ljung-Box. Khan et al.~\cite{khan2024sarima} report results on the
+same Boulder dataset we use; they find that SARIMA consistently beats
+plain ARMA / ARIMA because the weekly seasonality cannot be captured
+without an explicit seasonal term. Their best MAPE is 0.12 for
+SARIMA versus 0.23 for ARIMA. Facebook Prophet has also been used as
+an off-the-shelf alternative that handles holidays and seasonality
+without manual tuning, although on this kind of series a properly
+specified SARIMA tends to match it. The general lesson from this
+literature is that the weekly cycle in EV demand is strong enough
+that any model that ignores it (random walk, drift, plain ARIMA) ends
+up worse than a model that includes the seasonal lag at $s = 7$.
+
+\subsection{Deep Learning: LSTM and Hybrids}
+
+The second wave moved to recurrent networks. LSTM is the workhorse
+here: Yi et al.~\cite{yi2022lstm} train LSTM on utility-scale EV
+charging data from Utah and Los Angeles, with day-of-week and
+temperature as additional inputs, and show that the multivariate
+variant clearly beats the univariate one. The recent systematic
+review by Alaraj et al.~\cite{alaraj2025survey} confirms that LSTM
+(plus its variants, GRU and CNN-LSTM hybrids) is the deep learning
+default for this task, and that attention-augmented variants tend to
+improve short-horizon accuracy. For datasets of our size
+($\sim$2\,000 daily observations), the survey notes that the gains
+from heavy hybrids over a well-tuned single LSTM are usually marginal,
+which we confirm experimentally in Section~\ref{sec:models}.
+
+\subsection{Foundation Models for Time Series}
+
+Two recent foundation models for time series have appeared since the
+proposal was written, and we benchmark both. Google's
+TimesFM~\cite{das2024timesfm} is a decoder-only transformer with
+patch-based input embedding, pre-trained on a large corpus of public
+time series; it ships in two sizes (200M and 500M parameters) and is
+designed to be used zero-shot, with the user providing a context
+window and reading off the forecast. Amazon's
+Chronos~\cite{ansari2024chronos} takes a different approach: it
+tokenises the time series via uniform quantisation and runs a T5
+encoder-decoder over the resulting token sequence, sampling
+probabilistic forecasts (we take the median of 20 samples). Both
+models are interesting because they offer competitive baselines
+without any training on the target series. Our results
+(Section~\ref{sec:models}) suggest that TimesFM is a stronger choice
+for this dataset and that bigger Chronos is, surprisingly, worse than
+its small sibling.
+
+\subsection{Transformers Trained on EV Data}
+
+Three peer-reviewed papers train transformer-based models directly on
+the same Boulder dataset we use. Koohfar et
+al.~\cite{koohfar2023transformer} compare a vanilla transformer
+against ARIMA, SARIMA, RNN and LSTM on 25 aggregated Boulder stations,
+with horizons of 30, 60 and 90 days; they report that the transformer
+beats ARIMA by 62--84\% in normalised RMSE.
+Kyriakopoulos and Theodoridis~\cite{kyriakopoulos2025comparative}
+extend the comparison to four cities (including Boulder) and find that
+the transformer dominates at the station level for daily 1--5 day
+horizons. Wu et al.~\cite{wu2025catformer} propose a Context-Aware
+Temporal Transformer (CAT-Former) and benchmark it against six other
+architectures (LSTM, BiLSTM, CNN-LSTM, CNN-BiLSTM, vanilla
+transformer, hybrid transformer) on three Boulder stations,
+forecasting one hour and one day ahead. CAT-Former is the strongest
+model in their study, with MAE in the normalised $[0,1]$ range of
+$0.71$--$0.91$ for one-day-ahead forecasts on three different
+stations.
+
+Importantly, none of these papers report numbers in the same units or
+on the same station selection that we use. Their MAEs in normalised
+space are not directly comparable to our raw kWh values. We come back
+to this point in Section~\ref{sec:conclusions}; for now we simply note
+that the qualitative ordering they all observe (transformer $>$ LSTM
+$>$ classical) matches what we find.
+
+\subsection{PatchTST and Our Position}
+
+The architecture we implement in Section~\ref{sec:models} is
+PatchTST, introduced by Nie et al.~\cite{nie2023patchtst}. The key
+idea is to slice the input series into non-overlapping patches and
+treat each patch as a transformer token; this reduces the sequence
+length seen by the attention layer (compared to per-step tokens) and
+allows the model to learn patch-level patterns. PatchTST is normally
+combined with RevIN (Reversible Instance Normalisation,
+Kim et al.~\cite{kim2022revin}) to handle the distribution shift that
+appears in long-horizon forecasting. The original paper reports state
+of the art on several long-horizon time series benchmarks (ETT,
+Weather, Electricity), although it has not, to our knowledge, been
+applied to EV charging data before.
+
+\begin{table}[!htbp]
+\centering
+\caption{Summary of related work on EV charging demand forecasting,
+focused on studies that use the same Boulder dataset. Numbers are
+reported as published; they are not directly comparable to each other
+or to ours due to different units, station selections and horizons.}
+\label{tab:related}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Study & Model & Dataset & Metric & Score \\
+\midrule
+Khan et al.~\cite{khan2024sarima}    & SARIMA          & Boulder & MAPE & 0.12 \\
+Khan et al.~\cite{khan2024sarima}    & ARIMA           & Boulder & MAPE & 0.23 \\
+Koohfar~\cite{koohfar2023transformer}& Transformer     & Boulder & RMSE & 0.085--0.112 (norm.) \\
+Yi et al.~\cite{yi2022lstm}          & LSTM            & Utah/LA & MAE  & reported \\
+Wu et al.~\cite{wu2025catformer}     & CAT-Former      & Boulder & MAE  & 0.71--0.91 (norm.) \\
+Kyriakopoulos~\cite{kyriakopoulos2025comparative} & Transformer & Boulder + 3 & MAE & 0.28--0.45 (norm.) \\
+\midrule
+\textbf{This work} & \textbf{PatchTST + LSTM ensemble} & \textbf{Boulder} & \textbf{MAE} & \textbf{25.09 kWh (raw)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The take-away from Table~\ref{tab:related} is that classical SARIMA
+and transformer-based models bracket the published literature on this
+dataset, with the gap mainly explained by the seasonal component and
+the modelling of exogenous variables. Our contribution sits in the
+last row of the table: we run PatchTST under the same evaluation
+protocol as our SARIMA baselines and find that it beats the
+\emph{strongest} non-transformer model in the project (ARIMAX) while
+matching the qualitative ordering of the published work.

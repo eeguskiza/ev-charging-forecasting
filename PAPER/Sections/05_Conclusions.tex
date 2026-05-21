@@ -1,0 +1,115 @@
+\subsection{Summary}
+
+We compared eighteen models for 7-day-ahead daily forecasting of EV
+charging demand at N~Boulder Rec~1, the busiest public station in
+Boulder, Colorado. The leaderboard goes from naive baselines through
+the full classical (S)ARIMA family, an LSTM with hyper-parameter
+sweep, four zero-shot foundation models (TimesFM 1.0, TimesFM 2.0,
+Chronos-T5 base, Chronos-T5 large), and finally a from-scratch
+PatchTST transformer with RevIN, channel-mixed exogenous variables
+and a three-seed ensemble. The best model on the leaderboard is a
+simple-mean ensemble of PatchTST and LSTM, with MAE
+$25.09 \pm 9.36$~kWh. The next best is PatchTST alone (MAE
+$25.19 \pm 8.90$~kWh, lowest variance among forecasting models),
+followed by ARIMAX (2,1,3) at $25.52 \pm 14.38$~kWh.
+
+\subsection{What We Beat and What We Did Not}
+
+The strongest claim we can make honestly is: \emph{within this
+project's evaluation protocol --- same series, same train/test split,
+same rolling-origin windows, same metric --- the PatchTST + LSTM
+ensemble beats the strongest non-transformer model (ARIMAX) on both
+the mean MAE and the standard deviation, with the standard deviation
+roughly 35\% lower.} That is a real improvement.
+
+The weaker claim we \emph{cannot} make is that we beat the published
+state of the art. The three peer-reviewed papers that use this dataset
+(Koohfar~2023~\cite{koohfar2023transformer},
+Wu/Chowdhury~2025~\cite{wu2025catformer},
+Kyriakopoulos~2025~\cite{kyriakopoulos2025comparative}) all report
+their numbers in normalised units --- z-score for Koohfar and
+Kyriakopoulos, MinMax for Wu --- on different station selections
+(aggregated or per-station, but always a different mix from ours) and
+mostly different horizons (1 hour, 1 day, or 30/60/90 days, but rarely
+7 days). Our 25~kWh and their 0.7--0.9 (normalised) are not in the
+same unit system; ``$25 < 0.91$'' is not a meaningful comparison.
+
+The qualitative ordering, on the other hand, matches: transformer
+$>$ LSTM $>$ classical, with the gap explained by the exogenous
+variables and the long-horizon-friendly architecture. We sit in the
+SoTA \emph{family}; we have not run a like-for-like benchmark against
+its representatives.
+
+\subsection{Lessons Worth Writing Down}
+
+Three observations from this project that we want to remember:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Seed ensembles work.} A single PatchTST scored
+    MAE 27.1~kWh, which is worse than ARIMAX. Three independent
+    PatchTSTs (different seeds, otherwise identical) averaged at
+    inference scored 25.19~kWh, beating ARIMAX. Almost two kWh of
+    variance reduction for the cost of training three models instead
+    of one --- the cheapest performance boost in the entire project.
+    \item \textbf{Bigger zero-shot $\neq$ better.} Chronos-T5 large
+    (710M parameters) is the \emph{worst} foundation model in our
+    leaderboard, beaten by its 200M sibling. More parameters means
+    the pre-training prior is more strongly amplified at inference,
+    which only helps if the prior is correct for the new dataset.
+    For Boulder EV demand it is not. TimesFM transfers better
+    out-of-the-box.
+    \item \textbf{Stacking needs a real validation set.} Our
+    leave-one-window-out Ridge and NNLS stacking attempts both failed
+    to generalise from 21 days to 7 days. With 28 total test points
+    the meta-learner cannot pick up reliable weights. The dumbest
+    convex combination --- an unweighted mean of the two strongest
+    deep models, picked a priori --- ended up winning. Lesson: do not
+    try to learn an ensemble weight without enough data to support
+    it.
+\end{enumerate}
+
+\subsection{Limitations and Future Work}
+
+The honest limitations of this project are:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Single station, 30-day test set.} 28 test points is
+    enough to rank models but not enough for confident generalisation
+    claims. A future iteration should retrain on each of the top
+    stations (Baseline St~1, Carpenter Park~1, \dots) and report a
+    panel of results.
+    \item \textbf{No direct comparison with published numbers.} As
+    discussed above, the published Boulder papers use different units
+    and station selections. A defensible ``we beat CAT-Former'' or
+    ``we beat Koohfar'' claim would require replicating one of those
+    exact setups (same stations, same MinMax / z-score normalisation,
+    same horizon) and reporting in their unit system. That is the
+    natural next experiment.
+    \item \textbf{No probabilistic forecasting.} All our models
+    produce point forecasts; we did some basic prediction-interval
+    work in an auxiliary notebook (07) but did not push it
+    aggressively. For grid planning, calibrated quantiles would be
+    much more useful than point forecasts.
+    \item \textbf{PatchTST uses calendar-known exogenous only.} We do
+    not feed the model a temperature \emph{forecast} for the future
+    window; we feed the actual recorded temperature. In production
+    the operator would only have a forecast, and adding noise to the
+    temperature input would tell us how robust the gain is.
+\end{itemize}
+
+The most impactful follow-up would be the first item combined with
+the second: re-run PatchTST and the ensemble on the three CAT-Former
+stations with MinMax normalisation and the 1-day horizon, and report
+in normalised MAE/MSE so the comparison with CAT-Former is honest.
+Our PatchTST implementation already supports the necessary changes;
+it is essentially a preprocessing job.
+
+\subsection{Closing Note}
+
+This project started as a comparison between SARIMA and LSTM and ended
+up as a tour through every major time-series modelling family that
+matters in 2026. The verdict is uncomfortable for the loudest hype:
+foundation models did not win, and the strongest classical model is
+within one kWh of the best deep learning model. The win came from
+combining a small purpose-trained transformer (PatchTST) with a
+specifically-tuned LSTM, and from running each model three times to
+average out initialisation noise. None of those tricks are exotic.
+They were, however, the things that moved the needle.
