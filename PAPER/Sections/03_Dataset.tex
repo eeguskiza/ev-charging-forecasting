@@ -68,10 +68,17 @@ causally legitimate.
 Before we picked any model we ran the Augmented Dickey-Fuller test on
 the raw daily series. The ADF statistic is $-3.097$ with $p$-value
 $0.027$ at 24 lags (AIC selection), which lets us reject the unit-root
-null at the 5\% level. The series is stationary, not a random walk;
-we therefore use $d=0$ as the default differencing order for the
-(S)ARIMA family, with the search space allowing $d \in \{0,1\}$ for
-SARIMA's first difference of the seasonally differenced series.
+null at the 5\% level, although the rejection is marginal (the
+$p$-value sits close to the 0.05 threshold and the rolling-std plot
+shows variance growing with the level). Because the marginal
+stationarity is paired with a strong weekly seasonal cycle that the
+plain ADF does not capture, the (S)ARIMA grid we run in
+Section~\ref{sec:models} fixes $d=1$ and $D=1$ at lag~7: the first
+difference removes the residual level drift, and the seasonal
+difference at $m=7$ removes the weekly pattern. This pair of
+differencings is also what the ACF/PACF inspection
+(Fig.~\ref{fig:acf}) suggests is needed before the model orders
+$(p,q)(P,Q)$ can be picked.
 
 Figure~\ref{fig:acf} shows the autocorrelation function of the raw
 series. The picture is unambiguous: clear peaks at lags 7, 14, 21, 28

@@ -1,0 +1,24 @@
+# Core data stack
+numpy>=1.26
+pandas>=2.1
+matplotlib>=3.8
+
+# Classical time series
+statsmodels>=0.14
+pmdarima>=2.0  # AutoARIMA (used in notebook 08)
+
+# Deep learning (LSTM)
+# Note: for NVIDIA Blackwell GPUs (RTX 50xx) install the CUDA 12.8 build instead:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu128
+torch>=2.2
+
+# Foundation model benchmarks (notebook 06)
+timesfm[torch]>=1.2.0          # Google
+chronos-forecasting>=1.4        # Amazon
+
+# Notebook runtime
+jupyter>=1.0
+ipykernel>=6.29
+
+# HTTPS certificates for Open-Meteo API calls (01_preprocessing.ipynb)
+certifi>=2024.2.2

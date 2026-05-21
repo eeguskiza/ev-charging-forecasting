@@ -25,25 +25,22 @@ target.
 The horizon is seven days ahead. We chose a week because it covers
 a full weekday-weekend cycle and because most distribution utilities
 plan on a rolling-week basis, so a forecast on this scale is what an
-operator would actually use. The proposal we wrote back in April 2026
-already set this horizon and committed us to compare three families of
-models: naive baselines, SARIMA, and LSTM. What changed along the way
-is that we scaled up. After working through the SARIMA family and the
-LSTM, we ran a head-to-head between two zero-shot foundation models
-that have appeared since the proposal was written (Google's TimesFM
-and Amazon's Chronos), and finally implemented a PatchTST transformer
-from scratch in PyTorch with an ensemble of seeds. We did not
-implement CAT-Former, which the proposal flagged as the closest
-published state of the art on this dataset, but we read the paper and
-take it as a benchmark for the discussion.
+operator would actually use. Our initial scope was the three families
+required by the course: naive baselines, the (S)ARIMA family, and an
+LSTM. As we worked through them we kept going: we ran a head-to-head
+between two zero-shot foundation models (Google's TimesFM and Amazon's
+Chronos), and finally implemented a PatchTST transformer from scratch
+in PyTorch with a three-seed ensemble. We did not implement
+CAT-Former, the closest published state of the art on this dataset,
+but we read the paper and take it as a benchmark for the discussion.
 
-This paper is the wrap-up of the project: it documents the dataset,
-the protocol, the twenty models we ran under that protocol, and the
-honest claim we can make about beating the state of the art. We beat
-the strongest model in our own leaderboard. We do not claim to beat
-the published numbers, which use different units and station
-selections --- the full discussion is in
-Sections~\ref{sec:results} and~\ref{sec:conclusions}.
+This paper documents the dataset, the protocol, every model we ran
+under that protocol, and the claim we can defensibly make about
+beating the state of the art. We beat the strongest model in
+our own leaderboard. We do not claim to beat the published numbers,
+which use different units and station selections --- the full
+discussion is in Sections~\ref{sec:results}
+and~\ref{sec:conclusions}.
 
 The paper is organised as follows.
 Section~\ref{sec:related} reviews the state of the art on EV

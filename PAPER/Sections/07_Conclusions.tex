@@ -1,8 +1,8 @@
 \subsection{Summary}
 
-We compared twenty models for 7-day-ahead daily forecasting of EV
-charging demand at N~Boulder Rec~1, the busiest public station in
-Boulder, Colorado. The leaderboard goes from naive baselines through
+Our leaderboard spans twenty models for 7-day-ahead daily forecasting
+of EV charging demand at N~Boulder Rec~1, the busiest public station
+in Boulder, Colorado. The leaderboard goes from naive baselines through
 the full classical (S)ARIMA family, an LSTM with hyper-parameter
 sweep, four zero-shot foundation models (TimesFM 1.0, TimesFM 2.0,
 Chronos-T5 base, Chronos-T5 large), a from-scratch PatchTST
@@ -15,15 +15,15 @@ $25.52 \pm 14.38$~kWh.
 
 \subsection{What We Beat and What We Did Not}
 
-The strongest claim we can make honestly is: \emph{within this
-project's evaluation protocol --- same series, same train/test split,
-same rolling-origin windows, same metric --- the PatchTST + LSTM
-ensemble beats the strongest non-transformer model (ARIMAX) on both
-the mean MAE and the standard deviation, with the standard deviation
-roughly~35\% lower.} That is a real improvement.
+The strongest claim we can defensibly make is the following:
+\emph{within this project's evaluation protocol --- same series, same
+train/test split, same rolling-origin windows, same metric --- the
+PatchTST + LSTM ensemble beats the strongest non-transformer model
+(ARIMAX) on both the mean MAE and the standard deviation, with the
+standard deviation roughly~35\% lower.} That is a real improvement.
 
-The weaker claim we \emph{cannot} make is that we beat the published
-state of the art. The three peer-reviewed papers that use this dataset
+What we \emph{cannot} claim is that we beat the published state of
+the art. The three peer-reviewed papers that use this dataset
 (Koohfar~2023~\cite{koohfar2023transformer},
 Wu / Chowdhury~2025~\cite{wu2025catformer},
 Kyriakopoulos~2025~\cite{kyriakopoulos2025comparative}) all report
@@ -40,9 +40,9 @@ variables and the long-horizon-friendly architecture. We sit in the
 SoTA \emph{family}; we have not run a like-for-like benchmark against
 its representatives.
 
-\subsection{Lessons Worth Writing Down}
+\subsection{Lessons}
 
-Three observations from this project that we want to remember:
+Three observations from this project we want to remember:
 \begin{enumerate}[leftmargin=*]
     \item \textbf{Seed ensembles work.} A single PatchTST scored
     MAE 27.1~kWh, which is worse than ARIMAX. Three independent
@@ -69,7 +69,7 @@ Three observations from this project that we want to remember:
 
 \subsection{Limitations and Future Work}
 
-The honest limitations of this project are:
+The main limitations of this project are:
 \begin{itemize}[leftmargin=*]
     \item \textbf{Single station, 30-day test set.} 28 test points is
     enough to rank models but not enough for confident generalisation
@@ -92,24 +92,12 @@ The honest limitations of this project are:
     not feed the model a temperature \emph{forecast} for the future
     window; we feed the actual recorded temperature. In production
     the operator would only have a forecast, and adding noise to the
-    temperature input would tell us how robust the gain is.
+    temperature input would tell us how sensitive the gain is.
 \end{itemize}
 
-The most impactful follow-up would be the first item combined with
-the second: re-run PatchTST and the ensemble on the three CAT-Former
-stations with MinMax normalisation and the 1-day horizon, and report
-in normalised MAE/MSE so the comparison with CAT-Former is honest.
-Our PatchTST implementation already supports the necessary changes;
-it is essentially a preprocessing job.
-
-\subsection{Closing Note}
-
-Twenty models, one dataset, one protocol. The verdict is uncomfortable
-for the loudest hype around time-series forecasting in 2026:
-foundation models did not win, and the strongest classical model
-(ARIMAX) sits within one kWh MAE of the best deep learning model
-(LSTM). The win at the top came from combining a small
-purpose-trained transformer (PatchTST) with the tuned LSTM, and from
-running each PatchTST three times to average out initialisation
-noise. None of those tricks are exotic. They were, however, the
-things that moved the needle on this series.
+The most impactful follow-up would combine the first two items:
+re-run PatchTST and the ensemble on the three CAT-Former stations
+with MinMax normalisation and the 1-day horizon, and report in
+normalised MAE/MSE so the comparison with CAT-Former is directly in
+their unit system. Our PatchTST implementation already supports the
+necessary changes; it is essentially a preprocessing job.

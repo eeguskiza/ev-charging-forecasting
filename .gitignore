@@ -23,3 +23,6 @@ PAPER/*.out
 PAPER/*.fls
 PAPER/*.fdb_latexmk
 PAPER/*.synctex.gz
+
+# Stray LaTeX output if pdflatex is run from repo root
+/texput.log

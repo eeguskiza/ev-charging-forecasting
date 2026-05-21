@@ -101,7 +101,7 @@ puts it (and its ensemble with LSTM) on top of the leaderboard.}
 \label{fig:per-window}
 \end{figure}
 
-\subsection{Google vs.\ Amazon: Bigger Is Not Better}
+\subsection{Foundation Models: Size vs.\ Performance}
 
 The foundation-model rows of Table~\ref{tab:leaderboard} contain a
 small surprise. Both Google TimesFM models clearly beat both Amazon
@@ -110,7 +110,7 @@ the worst foundation model in our leaderboard). Inside each family
 the size ordering is also informative: TimesFM 2.0 (500M) is only
 marginally better than TimesFM 1.0 (200M), and Chronos-T5 large
 (710M) is actually \emph{worse} than its smaller 200M sibling. Two
-take-aways:
+conclusions:
 \begin{itemize}[leftmargin=*]
     \item \textbf{Foundation models do not win automatically.} The
     best foundation model (TimesFM 2.0) is at position 6 of our
@@ -127,23 +127,9 @@ take-aways:
     that mismatch.
 \end{itemize}
 
-\subsection{What We Beat, and What We Did Not}
-
-The honest claim, summarised:
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Inside our protocol}, the Ensemble PatchTST + LSTM
-    beats the strongest non-transformer model (ARIMAX) on both the
-    mean MAE (25.09~vs.\ 25.52~kWh) and the standard deviation
-    (9.36~vs.\ 14.38~kWh, ~35\% smaller). That is a real,
-    apples-to-apples improvement.
-    \item \textbf{Against the published literature}, no claim can be
-    made in either direction. Koohfar~\cite{koohfar2023transformer},
-    Wu~\cite{wu2025catformer} and
-    Kyriakopoulos~\cite{kyriakopoulos2025comparative} all report
-    metrics in normalised units (z-score or MinMax), on different
-    station selections, and mostly on different horizons. Our 25~kWh
-    and their 0.7--0.9 (normalised) are not in the same unit system.
-\end{itemize}
+The detailed claim about what we beat against published numbers (we
+do not, and why) is deferred to Section~\ref{sec:conclusions} so we
+do not repeat ourselves.
 
 \subsection{Stacking Did Not Work --- and Why}
 
