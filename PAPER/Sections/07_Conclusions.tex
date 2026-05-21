@@ -104,12 +104,12 @@ it is essentially a preprocessing job.
 
 \subsection{Closing Note}
 
-This project started as a comparison between SARIMA and LSTM and ended
-up as a tour through every major time-series modelling family that
-matters in 2026. The verdict is uncomfortable for the loudest hype:
-foundation models did not win, and the strongest classical model is
-within one kWh of the best deep learning model. The win came from
-combining a small purpose-trained transformer (PatchTST) with a
-specifically-tuned LSTM, and from running each model three times to
-average out initialisation noise. None of those tricks are exotic.
-They were, however, the things that moved the needle.
+Twenty models, one dataset, one protocol. The verdict is uncomfortable
+for the loudest hype around time-series forecasting in 2026:
+foundation models did not win, and the strongest classical model
+(ARIMAX) sits within one kWh MAE of the best deep learning model
+(LSTM). The win at the top came from combining a small
+purpose-trained transformer (PatchTST) with the tuned LSTM, and from
+running each PatchTST three times to average out initialisation
+noise. None of those tricks are exotic. They were, however, the
+things that moved the needle on this series.
