@@ -46,7 +46,6 @@ All models share the same protocol: rolling-origin, 7-day horizon, 4 test window
 - Naive baselines are beaten by ~28% in MAE.
 
 Full table (every model, every metric, source notebook) → [`docs/RESULTS.md`](docs/RESULTS.md)
-SoTA discussion (what we beat, what we didn't, why direct paper comparison isn't fair) → [`docs/SOTA_ANALYSIS.md`](docs/SOTA_ANALYSIS.md)
 
 ## Dataset
 

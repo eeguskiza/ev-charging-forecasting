@@ -2,7 +2,7 @@
 
 Every model is evaluated under the same protocol — **rolling-origin walk-forward, 7-day horizon, 4 non-overlapping windows on the last 30 days of the series**. Errors are reported as `mean ± std` across the 4 windows; **MASE** and **R²** are averages. Lower MAE / RMSE / MAPE / MASE / Bias is better; higher R² is better.
 
-For the detailed pipeline (data prep, fits, diagnostics) see the corresponding notebook in `notebooks/`. For the full SoTA-claim breakdown see [`SOTA_ANALYSIS.md`](SOTA_ANALYSIS.md).
+For the detailed pipeline (data prep, fits, diagnostics) see the corresponding notebook in `notebooks/`.
 
 ## Leaderboard
 
@@ -40,4 +40,4 @@ For the detailed pipeline (data prep, fits, diagnostics) see the corresponding n
 ## Notes on the comparison
 
 - **Stacking experiments (Ridge LOWO, NNLS LOWO)** were also run in notebook 09 but are *not* on the leaderboard above because they overfit with only 28 test points. They're documented in the notebook itself.
-- **Cross-paper SoTA comparison** (Koohfar 2023, CAT-Former 2025, Kyriakopoulos 2025) is not directly possible because every paper reports in different units, station selections and horizons. See [`SOTA_ANALYSIS.md`](SOTA_ANALYSIS.md) for the full breakdown.
+- **Cross-paper SoTA comparison** (Koohfar 2023, CAT-Former 2025, Kyriakopoulos 2025) is not directly possible because every paper reports in different units, station selections and horizons.
