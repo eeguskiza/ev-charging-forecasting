@@ -1,0 +1,79 @@
+\subsection{Train / Validation / Test Split}
+
+The last 30 days of the series (Nov 1, 2023 -- Nov 30, 2023) are held
+out as the test set; everything earlier is training data. Within the
+training data, the last 60 days are reserved as a validation split,
+used by the LSTM and PatchTST scripts for early stopping. Total
+\textbf{training data: 1\,897 days}; \textbf{validation: 60 days
+inside training}; \textbf{test: 30 days}. None of the test days are
+seen by any model during training or hyper-parameter selection.
+
+\subsection{Rolling-Origin Evaluation Protocol}
+
+We use rolling-origin (also known as walk-forward) evaluation with
+\textbf{four non-overlapping windows of seven days each}. At window
+$i$ the model sees the full training set plus the first
+$i \cdot 7$ days of the test set as history, and produces a 7-day
+forecast for days $i \cdot 7 + 1, \dots, (i+1) \cdot 7$ of the test
+set. Metrics are computed on each window separately and then averaged.
+This protocol mimics what a real operator would do: every Monday they
+have access to the previous week's actuals and need to forecast the
+upcoming week. With 30 test days we get four such weekly windows; the
+remaining two days are dropped (we keep windows non-overlapping so
+metrics across windows are independent).
+
+The classical models (SARIMA family, ARIMAX, ARMA, ARIMA, AutoARIMA)
+are \emph{refit at every origin} so the model has access to the
+freshest history. The LSTM is trained once on data prior to the test
+window and rolled forward autoregressively. The PatchTST is also
+trained once before the test window and uses a direct multi-step head
+(no autoregression) --- at each origin it consumes the last 56 days
+of history and outputs the 7-day forecast in one shot. Foundation
+models (TimesFM, Chronos) operate zero-shot: they are not trained at
+all, just queried with the history at each origin.
+
+\subsection{Metrics}
+
+We report seven metrics per window and aggregate them as
+mean~$\pm$~standard deviation across the four windows:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{MAE} (mean absolute error) in kWh --- our primary
+    metric, because it is in the same units as the target and easy to
+    interpret operationally (``the model is off by 25 kWh on
+    average''). The standard deviation across windows is at least as
+    important as the mean: a model with low mean but high variance is
+    risky in production.
+    \item \textbf{RMSE} (root mean squared error) in kWh, which
+    penalises large errors more than MAE.
+    \item \textbf{MAPE} and \textbf{sMAPE} (mean absolute percentage
+    error and its symmetric variant). MAPE blows up on zero actuals
+    so we report both.
+    \item \textbf{MASE} (mean absolute scaled error), scaled by the
+    in-sample MAE of the seasonal-naive forecast. MASE $< 1$ means
+    the model beats the trivial seasonal baseline; MASE $= 0.65$
+    means it cuts that error by 35\%.
+    \item \textbf{Bias} (mean signed error) in kWh --- positive means
+    the model over-predicts on average. Useful for spotting
+    systematic offsets.
+    \item \textbf{R\textsuperscript{2}} on the test window. R\textsuperscript{2}
+    can be negative when the model is worse than the mean of the
+    test window, which is common with very short windows; we still
+    report it for completeness.
+\end{itemize}
+Throughout the paper we rank models by MAE because it is the most
+operationally meaningful metric. The full table with every metric is
+in Table~\ref{tab:leaderboard} of Section~\ref{sec:results}.
+
+\subsection{Reproducibility and Heavy-Training Scripts}
+
+All the heavy training lives in standalone Python scripts under
+\texttt{scripts/}:
+\texttt{sarima\_grid\_search.py} for the AIC grid,
+\texttt{lstm\_train.py} for the LSTM sweep, and
+\texttt{patchtst\_train.py} for the PatchTST seed ensemble. The
+notebooks load the resulting cached predictions and apply the shared
+\texttt{evaluation.py} rolling-origin routine, so a single notebook
+never has to retrain a transformer to produce its leaderboard row.
+Training the PatchTST seed ensemble takes $\approx 2$~minutes per
+seed on an RTX 5070~Ti; the full pipeline (every model, every metric)
+runs end-to-end in under ten minutes from a cold checkout.

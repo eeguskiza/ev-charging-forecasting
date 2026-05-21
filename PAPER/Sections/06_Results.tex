@@ -1,0 +1,167 @@
+\subsection{Full Leaderboard}
+
+Table~\ref{tab:leaderboard} reports every model, every metric, sorted
+by MAE. Bold rows are the two best models, which come out of
+Section~\ref{sec:models}'s SoTA push (PatchTST seed ensemble alone, and
+the mean ensemble of PatchTST and LSTM). Italic rows are the naive
+baselines.
+
+\begin{table}[!htbp]
+\centering
+\caption{Full leaderboard --- 20 models, 6 metrics. Mean~$\pm$~standard
+deviation across the four rolling-origin windows. Lower is better for
+every metric except R\textsuperscript{2}. Bold: the two best models
+overall (Section~\ref{sec:models}, SoTA push). Italic: naive baselines.
+Foundation models are zero-shot (no training on this dataset).}
+\label{tab:leaderboard}
+\setlength{\tabcolsep}{4pt}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Model & MAE (kWh) & RMSE (kWh) & MAPE & MASE & Bias & R\textsuperscript{2} \\
+\midrule
+\textbf{Ensemble PatchTST + LSTM}        & \textbf{25.09\,$\pm$\,9.4}  & \textbf{28.88\,$\pm$\,11.3}  & 58.5\% & \textbf{0.63} & $-$2.42  & $-$0.13 \\
+\textbf{PatchTST (3-seed ensemble)}      & \textbf{25.19\,$\pm$\,8.9}  & 30.74\,$\pm$\,11.9            & 58.7\% & 0.64          & $-$1.92  & $-$0.32 \\
+ARIMAX (2,1,3)                            & 25.52\,$\pm$\,14.4          & 30.51\,$\pm$\,15.6            & 53.9\% & 0.65          & $-$8.08  & $-$0.19 \\
+LSTM seq14\_h64\_l2                       & 25.68\,$\pm$\,10.6          & 28.47\,$\pm$\,11.2            & 59.4\% & 0.65          & $-$2.93  & $-$0.12 \\
+SARIMAX (2,1,4)$\times$(1,1,2,7)          & 25.89\,$\pm$\,12.8          & 31.12\,$\pm$\,13.7            & 54.0\% & 0.65          & $-$7.96  & $-$0.27 \\
+TimesFM 2.0 -- Google (500M)              & 26.23\,$\pm$\,12.6          & 30.79\,$\pm$\,14.6            & 53.5\% & 0.66          & $-$9.71  & $-$0.22 \\
+ARIMA (2,1,3)                             & 26.31\,$\pm$\,12.4          & 30.78\,$\pm$\,13.7            & 58.3\% & 0.67          & $-$5.82  & $-$0.25 \\
+TimesFM 1.0 -- Google (200M)              & 26.32\,$\pm$\,11.1          & 30.60\,$\pm$\,12.8            & 57.5\% & 0.67          & $-$6.87  & $-$0.25 \\
+AutoARIMA non-seas. (0,1,1)               & 26.40\,$\pm$\,11.5          & 30.64\,$\pm$\,13.0            & 57.9\% & 0.67          & $-$6.39  & $-$0.25 \\
+ARIMA (3,1,3)                             & 26.68\,$\pm$\,11.2          & 31.28\,$\pm$\,13.3            & 58.2\% & 0.67          & $-$6.19  & $-$0.30 \\
+ARMA (3,0,3)                              & 26.71\,$\pm$\,12.3          & 30.75\,$\pm$\,13.9            & 58.7\% & 0.68          & $-$6.63  & $-$0.24 \\
+SARIMA (3,1,4)$\times$(0,1,2,7)           & 26.86\,$\pm$\,11.9          & 31.92\,$\pm$\,13.5            & 57.7\% & 0.68          & $-$6.13  & $-$0.36 \\
+Chronos-T5 base -- Amazon (200M)          & 27.31\,$\pm$\,11.3          & 32.75\,$\pm$\,14.1            & 58.7\% & 0.69          & $-$8.93  & $-$0.44 \\
+AutoARIMA seas. (0,1,1)$\times$(1,0,1,7)  & 27.44\,$\pm$\,11.7          & 31.44\,$\pm$\,13.5            & 57.3\% & 0.69          & $-$8.82  & $-$0.31 \\
+Chronos-T5 large -- Amazon (710M)         & 27.94\,$\pm$\,13.0          & 33.24\,$\pm$\,16.0            & 53.6\% & 0.71          & $-$14.26 & $-$0.42 \\
+\midrule
+Stacking NNLS (LOWO)                      & 26.08\,$\pm$\,9.8           & 28.99\,$\pm$\,10.8            & 61.0\% & 0.66          & $-$2.32  & $-$0.17 \\
+Stacking Ridge (LOWO)                     & 32.29\,$\pm$\,8.1           & 37.22\,$\pm$\,8.3             & 77.7\% & 0.82          & $-$2.73  & $-$1.22 \\
+\midrule
+\textit{Historical mean}                  & \textit{30.13\,$\pm$\,2.2}  & \textit{34.87\,$\pm$\,3.0}    & \textit{89.9\%} & \textit{0.76} & \textit{+14.42} & \textit{$-$1.21} \\
+\textit{Last value}                       & \textit{31.22\,$\pm$\,12.7} & \textit{37.08\,$\pm$\,13.8}   & \textit{61.0\%} & \textit{0.79} & \textit{$-$10.33} & \textit{$-$1.02} \\
+\textit{Drift}                            & \textit{31.24\,$\pm$\,12.7} & \textit{37.09\,$\pm$\,13.8}   & \textit{61.1\%} & \textit{0.79} & \textit{$-$10.29} & \textit{$-$1.03} \\
+\textit{ARIMA naive-seasonal (3,1,3)}     & \textit{34.74\,$\pm$\,12.1} & \textit{41.36\,$\pm$\,11.0}   & \textit{76.0\%} & \textit{0.88} & \textit{$-$4.95}  & \textit{$-$1.69} \\
+\textit{Seasonal naive}                   & \textit{34.98\,$\pm$\,13.1} & \textit{41.57\,$\pm$\,12.4}   & \textit{79.6\%} & \textit{0.88} & \textit{$-$4.10}  & \textit{$-$1.68} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Leaderboard Plot}
+
+Figure~\ref{fig:leaderboard} visualises the same ranking but with the
+error bars (one standard deviation across windows). Three observations
+stand out:
+\begin{enumerate}[leftmargin=*]
+    \item The top of the leaderboard is tightly packed: every model
+    in the top six is within 1~kWh MAE of the best, which is smaller
+    than the standard deviation of every individual model.
+    \item The Ensemble PatchTST + LSTM does \emph{not} have the
+    smallest standard deviation --- that honour goes to the
+    historical-mean baseline, which is trivially stable. The smallest
+    std among forecasting models belongs to PatchTST alone
+    (8.90~vs.\ 14.38 for ARIMAX): the seed-ensemble buys us almost
+    40\% variance reduction over the previous best.
+    \item All forecasting models comfortably beat the naive
+    baselines. The MAE gap between the best model (25.09~kWh) and
+    the best baseline (30.13~kWh) is $\sim$17\%, which is the
+    learnable signal in the series.
+\end{enumerate}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{fig_leaderboard}
+\caption{Final leaderboard. Bars are MAE in kWh (lower is better);
+error bars are one standard deviation across the four rolling-origin
+windows. The Ensemble PatchTST + LSTM (top) is the best model
+overall; the PatchTST seed-ensemble has the lowest std among
+forecasting models.}
+\label{fig:leaderboard}
+\end{figure}
+
+\subsection{Per-Window Analysis}
+
+Figure~\ref{fig:per-window} breaks down the MAE by window for the top
+six models. The takeaway here is window~3 (Nov 14--20, 2023), which
+includes Thanksgiving: every model has its worst week here, with MAE
+shooting up to 36--43~kWh. PatchTST is the one that loses the least
+on that week (36.4~kWh vs.\ 38.8~kWh for the LSTM and $\sim$41~kWh
+for ARIMAX), and that is the main reason it wins the leaderboard.
+Outside window~3, the top models are essentially tied.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{fig_per_window}
+\caption{Per-window MAE for the top six models. Window~3 (Thanksgiving
+week) is hard for every model; the ranking on the other three windows
+is much tighter. PatchTST loses less on the hard week, which is what
+puts it (and its ensemble with LSTM) on top of the leaderboard.}
+\label{fig:per-window}
+\end{figure}
+
+\subsection{Google vs.\ Amazon: Bigger Is Not Better}
+
+The foundation-model rows of Table~\ref{tab:leaderboard} contain a
+small surprise. Both Google TimesFM models clearly beat both Amazon
+Chronos models (TimesFM 2.0: 26.23~kWh; Chronos-T5 large: 27.94~kWh,
+the worst foundation model in our leaderboard). Inside each family
+the size ordering is also informative: TimesFM 2.0 (500M) is only
+marginally better than TimesFM 1.0 (200M), and Chronos-T5 large
+(710M) is actually \emph{worse} than its smaller 200M sibling. Two
+take-aways:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Foundation models do not win automatically.} The
+    best foundation model (TimesFM 2.0) is at position 6 of our
+    leaderboard, still beaten by ARIMAX, LSTM and SARIMAX in MAE.
+    Zero-shot is a useful baseline but not a substitute for training
+    on the target data.
+    \item \textbf{More parameters means more prior, not more
+    flexibility.} If the pre-training corpus is dominated by series
+    that do not look like Boulder EV demand (random-walk-like
+    financial series, for instance), a larger model amplifies the
+    wrong prior. TimesFM transfers better because its pre-training
+    mix includes more energy and load series; Chronos is trained on
+    a different corpus and the larger checkpoint inherits more of
+    that mismatch.
+\end{itemize}
+
+\subsection{What We Beat, and What We Did Not}
+
+The honest claim, summarised:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Inside our protocol}, the Ensemble PatchTST + LSTM
+    beats the strongest non-transformer model (ARIMAX) on both the
+    mean MAE (25.09~vs.\ 25.52~kWh) and the standard deviation
+    (9.36~vs.\ 14.38~kWh, ~35\% smaller). That is a real,
+    apples-to-apples improvement.
+    \item \textbf{Against the published literature}, no claim can be
+    made in either direction. Koohfar~\cite{koohfar2023transformer},
+    Wu~\cite{wu2025catformer} and
+    Kyriakopoulos~\cite{kyriakopoulos2025comparative} all report
+    metrics in normalised units (z-score or MinMax), on different
+    station selections, and mostly on different horizons. Our 25~kWh
+    and their 0.7--0.9 (normalised) are not in the same unit system.
+\end{itemize}
+
+\subsection{Stacking Did Not Work --- and Why}
+
+For completeness we also tried two stacked meta-learners (Ridge and
+NNLS, both leave-one-window-out, both trained on the six base learners
+listed in Section~\ref{sec:models}). The results are in the middle
+rows of Table~\ref{tab:leaderboard}: NNLS lands at 26.08~kWh MAE
+(worse than the simple mean), and Ridge collapses to 32.29~kWh, which
+is below several baselines. The reason is structural: 21 training
+points per fold is not enough to fit reliable meta-weights. The Ridge
+solution oscillates wildly between folds (we observed both very
+negative and very large positive coefficients depending on which
+window is held out), and NNLS concentrates almost all its weight on
+the LSTM, throwing away the diversity the meta-learner was supposed
+to exploit.
+
+The dumbest combination wins: the unweighted mean of the two best
+deep models, picked a priori. The lesson, which we re-state in
+Section~\ref{sec:conclusions}, is that stacking needs a real
+validation set --- not just a tiny held-out test set --- to learn
+weights that generalise.

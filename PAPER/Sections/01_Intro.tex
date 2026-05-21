@@ -22,9 +22,9 @@ station with the highest session volume (N~Boulder Rec~1, 16\,278
 sessions), and treat the resulting daily kWh series as our forecasting
 target.
 
-The horizon is seven days ahead. We chose a week because (a) it covers
-a full weekday-weekend cycle and (b) most distribution utilities plan
-on a rolling-week basis, so a forecast on this scale is what an
+The horizon is seven days ahead. We chose a week because it covers
+a full weekday-weekend cycle and because most distribution utilities
+plan on a rolling-week basis, so a forecast on this scale is what an
 operator would actually use. The proposal we wrote back in April 2026
 already set this horizon and committed us to compare three families of
 models: naive baselines, SARIMA, and LSTM. What changed along the way
@@ -38,17 +38,25 @@ published state of the art on this dataset, but we read the paper and
 take it as a benchmark for the discussion.
 
 This paper is the wrap-up of the project: it documents the dataset,
-the protocol, the eighteen models we ran under that protocol, and the
-honest claim we can make about beating the state of the art (we beat
-the strongest model in our own leaderboard; we do not claim to beat
+the protocol, the twenty models we ran under that protocol, and the
+honest claim we can make about beating the state of the art. We beat
+the strongest model in our own leaderboard. We do not claim to beat
 the published numbers, which use different units and station
-selections --- see Section~\ref{sec:models} and our discussion).
-Section~\ref{sec:related} reviews related work,
-Section~\ref{sec:data} describes the dataset, preprocessing and
-evaluation protocol, Section~\ref{sec:models} walks through each
-model family with the leaderboard at the end, and
-Section~\ref{sec:conclusions} closes with conclusions and the
-honest limitations we found.
+selections --- the full discussion is in
+Sections~\ref{sec:results} and~\ref{sec:conclusions}.
+
+The paper is organised as follows.
+Section~\ref{sec:related} reviews the state of the art on EV
+charging demand forecasting.
+Section~\ref{sec:data} describes the dataset and its statistical
+properties.
+Section~\ref{sec:method} defines the train/test protocol and the
+metrics.
+Section~\ref{sec:models} walks through every model family we ran.
+Section~\ref{sec:results} gives the full leaderboard, the per-window
+analysis, and the SoTA-claim breakdown.
+Section~\ref{sec:conclusions} closes with conclusions, lessons learned
+and limitations.
 
 \medskip
 \noindent
@@ -58,8 +66,8 @@ did add is: (i)~an implementation from scratch in PyTorch that lives
 in the project repository, with RevIN~\cite{kim2022revin} on the
 target channel and channel-mixed patching over four input channels
 (energy, temperature, weekend flag, holiday flag); (ii)~a three-seed
-ensemble strategy that cuts inference variance by about 7\% MAE; and
-(iii)~a small-mean ensemble with the LSTM that we picked \emph{before}
-looking at the test scores, which gave the best model overall.
-Everything is reproducible from the repository.\footnote{Repository:
-\url{https://github.com/eeguskiza/ev-charging-forecasting}}
+ensemble strategy that cuts inference variance by about~7\% MAE; and
+(iii)~a simple-mean ensemble with the LSTM that we picked
+\emph{before} looking at the test scores, which gave the best model
+overall. Everything is reproducible from the project
+repository~\cite{ourrepo}.

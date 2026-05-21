@@ -1,0 +1,96 @@
+\subsection{Source and Coverage}
+
+We use the \emph{Electric Vehicle Charging Station Data} dataset
+published by the City of Boulder, Colorado on its Open Data
+portal~\cite{boulderdata}. The dataset is updated regularly; the
+snapshot we work with covers the period from August 22, 2018 to
+November 30, 2023 (1\,927 days), and contains 148\,136 individual
+charging sessions across 26 city-owned level-2 stations. Each session
+record carries 15 fields, of which the most relevant for forecasting
+are the station identifier, the start and end timestamps, the
+charging duration, and the energy delivered in kWh. There are
+essentially no missing values: only four sessions out of 148\,136 have
+a null end-time.
+
+\subsection{Station and Aggregation}
+
+We focus on the station with the highest session volume,
+N~Boulder Rec~1, with 16\,278 sessions in the period of interest. The
+reason for picking a single station is simple: with one station the
+daily series is dense and continuous, with only 5.2\% of days at
+zero. Aggregating across all 26 stations would smooth out the
+station-level structure we want to learn (commute patterns at
+recreational vs.\ commercial locations are very different), and
+working with multiple separate series would require multi-task models
+that go beyond the scope of this project. The sessions for
+N~Boulder Rec~1 are summed by date to produce a univariate daily
+series of 1\,927 observations, with mean 74.6~kWh/day, standard
+deviation 50.3~kWh, and a range of 0--310~kWh. 100 days have zero
+energy (mostly holidays or short station outages); we preserve these
+zeros instead of imputing them, since they reflect real operational
+patterns that the model should learn.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{fig_series}
+\caption{Daily energy consumption at N~Boulder Rec~1 from August 2018
+to November 2023. The orange band marks the 30-day held-out test
+window; everything to the left of it is training data. The COVID-19
+drop in 2020 and the post-pandemic recovery are clearly visible.}
+\label{fig:series}
+\end{figure}
+
+\subsection{Exogenous Variables}
+
+For the models that support them (SARIMAX, ARIMAX, LSTM, PatchTST), we
+add three exogenous channels aligned with the daily target:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Temperature.} Daily mean temperature in Boulder
+    pulled from the Open-Meteo historical weather
+    API~\cite{openmeteo}. We picked mean over min/max because most
+    charging happens during commute hours, when the mean is the
+    closest proxy for the temperature actually seen by the chargers.
+    \item \textbf{Day-of-week flags.} A binary \emph{is\_weekend}
+    flag, plus the integer day of week as a feature when relevant. We
+    do \emph{not} use a holiday-aware day-of-week encoding because
+    holidays are handled separately.
+    \item \textbf{Holiday indicator.} A binary flag for US public
+    holidays, generated from the \texttt{holidays} Python package
+    using the federal calendar plus Colorado state holidays.
+\end{itemize}
+These three variables are known at forecast time (day-of-week and
+holiday from the calendar, temperature from a standard one-week
+weather forecast), so feeding them as future exogenous inputs is
+causally legitimate.
+
+\subsection{Stationarity and Seasonality Analysis}
+
+Before we picked any model we ran the Augmented Dickey-Fuller test on
+the raw daily series. The ADF statistic is $-3.097$ with $p$-value
+$0.027$ at 24 lags (AIC selection), which lets us reject the unit-root
+null at the 5\% level. The series is stationary, not a random walk;
+we therefore use $d=0$ as the default differencing order for the
+(S)ARIMA family, with the search space allowing $d \in \{0,1\}$ for
+SARIMA's first difference of the seasonally differenced series.
+
+Figure~\ref{fig:acf} shows the autocorrelation function of the raw
+series. The picture is unambiguous: clear peaks at lags 7, 14, 21, 28
+and 35, with a slow decay in between, telling us the weekly cycle is
+the dominant seasonal component. There is no annual peak visible in
+this lag range because we only show 42 lags, but the seasonal
+behaviour at the year scale is clear in the time-series plot
+(Fig.~\ref{fig:series}, where summer months consistently sit above
+the mean). The PACF (not shown for space reasons) has significant
+spikes at lags 1 and 7, suggesting an AR(1) main component with a
+seasonal AR at lag 7 --- which is the search shape we use for the
+(S)ARIMA grid in Section~\ref{sec:models}.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{fig_acf}
+\caption{Autocorrelation of the daily series. The repeating peaks at
+multiples of 7 are the signature of a strong weekly seasonal cycle;
+this is the structural reason classical (S)ARIMA models do not need
+to be replaced by anything fancier to be competitive.}
+\label{fig:acf}
+\end{figure}

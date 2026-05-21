@@ -34,7 +34,7 @@ default for this task, and that attention-augmented variants tend to
 improve short-horizon accuracy. For datasets of our size
 ($\sim$2\,000 daily observations), the survey notes that the gains
 from heavy hybrids over a well-tuned single LSTM are usually marginal,
-which we confirm experimentally in Section~\ref{sec:models}.
+which we confirm experimentally in Section~\ref{sec:results}.
 
 \subsection{Foundation Models for Time Series}
 
@@ -51,7 +51,7 @@ encoder-decoder over the resulting token sequence, sampling
 probabilistic forecasts (we take the median of 20 samples). Both
 models are interesting because they offer competitive baselines
 without any training on the target series. Our results
-(Section~\ref{sec:models}) suggest that TimesFM is a stronger choice
+(Section~\ref{sec:results}) suggest that TimesFM is a stronger choice
 for this dataset and that bigger Chronos is, surprisingly, worse than
 its small sibling.
 
@@ -104,18 +104,20 @@ focused on studies that use the same Boulder dataset. Numbers are
 reported as published; they are not directly comparable to each other
 or to ours due to different units, station selections and horizons.}
 \label{tab:related}
-\begin{tabular}{@{}lllll@{}}
+\setlength{\tabcolsep}{4pt}
+\footnotesize
+\begin{tabular}{@{}p{2.8cm}p{2.3cm}p{2.0cm}p{1.1cm}p{2.4cm}@{}}
 \toprule
 Study & Model & Dataset & Metric & Score \\
 \midrule
-Khan et al.~\cite{khan2024sarima}    & SARIMA          & Boulder & MAPE & 0.12 \\
-Khan et al.~\cite{khan2024sarima}    & ARIMA           & Boulder & MAPE & 0.23 \\
-Koohfar~\cite{koohfar2023transformer}& Transformer     & Boulder & RMSE & 0.085--0.112 (norm.) \\
-Yi et al.~\cite{yi2022lstm}          & LSTM            & Utah/LA & MAE  & reported \\
-Wu et al.~\cite{wu2025catformer}     & CAT-Former      & Boulder & MAE  & 0.71--0.91 (norm.) \\
-Kyriakopoulos~\cite{kyriakopoulos2025comparative} & Transformer & Boulder + 3 & MAE & 0.28--0.45 (norm.) \\
+Khan et al.~\cite{khan2024sarima}             & SARIMA       & Boulder      & MAPE & 0.12 \\
+Khan et al.~\cite{khan2024sarima}             & ARIMA        & Boulder      & MAPE & 0.23 \\
+Koohfar~\cite{koohfar2023transformer}         & Transformer  & Boulder      & RMSE & 0.085--0.112 (n.) \\
+Yi et al.~\cite{yi2022lstm}                   & LSTM         & Utah / LA    & MAE  & reported \\
+Wu et al.~\cite{wu2025catformer}              & CAT-Former   & Boulder      & MAE  & 0.71--0.91 (n.) \\
+Kyriakopoulos~\cite{kyriakopoulos2025comparative} & Transformer & Boulder + 3 & MAE & 0.28--0.45 (n.) \\
 \midrule
-\textbf{This work} & \textbf{PatchTST + LSTM ensemble} & \textbf{Boulder} & \textbf{MAE} & \textbf{25.09 kWh (raw)} \\
+\textbf{This work} & \textbf{PatchTST + LSTM} & \textbf{Boulder} & \textbf{MAE} & \textbf{25.09 kWh (raw)} \\
 \bottomrule
 \end{tabular}
 \end{table}

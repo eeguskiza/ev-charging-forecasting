@@ -1,17 +1,17 @@
 \subsection{Summary}
 
-We compared eighteen models for 7-day-ahead daily forecasting of EV
+We compared twenty models for 7-day-ahead daily forecasting of EV
 charging demand at N~Boulder Rec~1, the busiest public station in
 Boulder, Colorado. The leaderboard goes from naive baselines through
 the full classical (S)ARIMA family, an LSTM with hyper-parameter
 sweep, four zero-shot foundation models (TimesFM 1.0, TimesFM 2.0,
-Chronos-T5 base, Chronos-T5 large), and finally a from-scratch
-PatchTST transformer with RevIN, channel-mixed exogenous variables
-and a three-seed ensemble. The best model on the leaderboard is a
-simple-mean ensemble of PatchTST and LSTM, with MAE
-$25.09 \pm 9.36$~kWh. The next best is PatchTST alone (MAE
-$25.19 \pm 8.90$~kWh, lowest variance among forecasting models),
-followed by ARIMAX (2,1,3) at $25.52 \pm 14.38$~kWh.
+Chronos-T5 base, Chronos-T5 large), a from-scratch PatchTST
+transformer with RevIN and three-seed ensembling, and two stacking
+attempts on top. The best model on the leaderboard is a simple-mean
+ensemble of PatchTST and LSTM, with MAE $25.09 \pm 9.36$~kWh. The
+next best is PatchTST alone (MAE $25.19 \pm 8.90$~kWh, lowest
+variance among forecasting models), followed by ARIMAX (2,1,3) at
+$25.52 \pm 14.38$~kWh.
 
 \subsection{What We Beat and What We Did Not}
 
@@ -20,12 +20,12 @@ project's evaluation protocol --- same series, same train/test split,
 same rolling-origin windows, same metric --- the PatchTST + LSTM
 ensemble beats the strongest non-transformer model (ARIMAX) on both
 the mean MAE and the standard deviation, with the standard deviation
-roughly 35\% lower.} That is a real improvement.
+roughly~35\% lower.} That is a real improvement.
 
 The weaker claim we \emph{cannot} make is that we beat the published
 state of the art. The three peer-reviewed papers that use this dataset
 (Koohfar~2023~\cite{koohfar2023transformer},
-Wu/Chowdhury~2025~\cite{wu2025catformer},
+Wu / Chowdhury~2025~\cite{wu2025catformer},
 Kyriakopoulos~2025~\cite{kyriakopoulos2025comparative}) all report
 their numbers in normalised units --- z-score for Koohfar and
 Kyriakopoulos, MinMax for Wu --- on different station selections
@@ -85,9 +85,9 @@ The honest limitations of this project are:
     natural next experiment.
     \item \textbf{No probabilistic forecasting.} All our models
     produce point forecasts; we did some basic prediction-interval
-    work in an auxiliary notebook (07) but did not push it
-    aggressively. For grid planning, calibrated quantiles would be
-    much more useful than point forecasts.
+    work in an auxiliary notebook but did not push it aggressively.
+    For grid planning, calibrated quantiles would be much more useful
+    than point forecasts.
     \item \textbf{PatchTST uses calendar-known exogenous only.} We do
     not feed the model a temperature \emph{forecast} for the future
     window; we feed the actual recorded temperature. In production

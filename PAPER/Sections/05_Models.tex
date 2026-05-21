@@ -1,0 +1,146 @@
+We ran twenty models under the protocol of Section~\ref{sec:method}.
+This section describes each family in turn; the numerical results are
+reported in Section~\ref{sec:results}.
+
+\subsection{Naive Baselines}
+
+We need a floor below which any forecasting model should not fall, and
+that floor is the naive family. We ran five baselines:
+\textbf{historical mean}, \textbf{last value}, \textbf{drift},
+\textbf{seasonal-naive} (at $s=7$), and \textbf{ARIMA naive-seasonal}
+(an ARIMA(3,1,3) applied to the de-seasonalised series, used as a
+weak baseline in some related work). The point of the baselines is to
+quantify how much of the variance in the series can be explained
+without any real learning; any forecasting model that does not
+comfortably beat them is not worth running.
+
+\subsection{Classical (S)ARIMA / ARIMAX Family}
+
+We ran an exhaustive AIC grid search over $(p, d, q)(P, D, Q)_7$ with
+$p, q \in [0, 4]$, $P, Q \in [0, 2]$, $d = D = 1$ (so the seasonal
+difference at lag 7 is applied) and $s = 7$. The grid was repeated
+with and without exogenous variables (temperature, weekend flag,
+holiday flag), giving two families: SARIMA (no exog) and SARIMAX (with
+exog). Models are fit via maximum likelihood with the
+\texttt{statsmodels} SARIMAX backend, with rolling-origin refits at
+each test window so the model has access to the most recent actuals.
+
+In addition to the SARIMA grid, we evaluated the simpler members of
+the Box-Jenkins family that the course rubric explicitly requires:
+\textbf{ARMA}, \textbf{ARIMA} (two different orders),
+\textbf{AutoARIMA} (seasonal and non-seasonal, via \texttt{pmdarima}),
+and \textbf{ARIMAX} (ARIMA with exogenous variables). The reason for
+including ARIMAX as a separate model rather than as a SARIMAX variant
+is that it does not include an explicit seasonal term: it lets the
+exogenous variables (especially the weekend / holiday flags) absorb
+most of the weekly cycle. As we will see in Section~\ref{sec:results},
+this turns out to be a competitive design on Boulder data.
+
+\subsection{LSTM}
+
+The LSTM (\texttt{scripts/lstm\_train.py}) uses five input features
+(energy, mean temperature, weekend flag, holiday flag, month) and
+performs a hyper-parameter sweep over sequence length
+$\in \{14, 28\}$, hidden size $\in \{32, 64\}$, and number of layers
+$\in \{1, 2\}$. Each configuration is trained with Adam, MSE loss,
+dropout 0.1 and early stopping on the 60-day validation split. The
+winning configuration is \texttt{seq14\_h64\_l2}: 14-day sequences,
+hidden size 64, 2 layers. At inference time the LSTM forecasts one
+day ahead and is rolled forward autoregressively for the full 7-day
+horizon, feeding back its own prediction with the known future
+exogenous row each step.
+
+\subsection{Zero-Shot Foundation Models}
+
+We benchmark four foundation models in zero-shot mode, no fine-tuning,
+just feed the history and read the forecast:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Google TimesFM 1.0} (200M parameters) and
+    \textbf{TimesFM 2.0} (500M)~\cite{das2024timesfm}, both
+    decoder-only transformers with patch-based input embedding,
+    pre-trained on a public time-series corpus.
+    \item \textbf{Amazon Chronos-T5 base} (200M) and
+    \textbf{Chronos-T5 large} (710M)~\cite{ansari2024chronos}, T5
+    encoder-decoder models that quantise the input into tokens and
+    sample probabilistic forecasts. We take the median of 20 samples
+    as the point forecast.
+\end{itemize}
+These four models are evaluated under exactly the same rolling-origin
+protocol as everything else. Comparing them lets us test two
+sub-questions in parallel: (a) Google or Amazon, on this kind of
+series? (b) Does bigger help inside each family?
+
+\subsection{PatchTST From Scratch}
+
+For the SoTA push we implemented PatchTST~\cite{nie2023patchtst} from
+scratch in PyTorch (Fig.~\ref{fig:patchtst}). The architecture
+choices, made deliberately small to match our $\sim$1900-point
+dataset:
+\begin{itemize}[leftmargin=*]
+    \item Context length: 56 days (8 weeks).
+    \item Patch length: 7 days, non-overlapping stride 7 $\Rightarrow$
+    8 tokens per input.
+    \item 3 transformer encoder layers, $d_{\text{model}}=96$, 4
+    attention heads, GELU activation, dropout 0.15.
+    \item \textbf{Channel-mixed patching}: each patch is a
+    $(7, 4)$ block over the four input channels (energy + 3 exog),
+    flattened to 28-dim and linearly embedded; cheaper and more
+    data-efficient than channel-independent attention for our
+    sequence length.
+    \item \textbf{RevIN}~\cite{kim2022revin} on the target channel
+    only: per-sample mean / std subtraction before the encoder and
+    inverse transform on the output. This is what kept the model
+    competitive against the regime shifts in the data (COVID drop,
+    holiday weeks).
+\end{itemize}
+We train each model with AdamW (LR $5 \times 10^{-4}$, weight decay
+$10^{-4}$), cosine annealing, early stopping with patience 25, batch
+size 32. Training a single PatchTST takes $\approx 2$~minutes on the
+RTX 5070~Ti.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{fig_patchtst}
+\caption{PatchTST forward pass as implemented in
+\texttt{scripts/patchtst\_train.py}. The energy channel goes through
+RevIN before patching; the three exogenous channels are concatenated
+into each patch and flattened together. The head is a single linear
+layer that directly predicts the next 7 days, with no autoregression.}
+\label{fig:patchtst}
+\end{figure}
+
+A single PatchTST trained on this setup overfits noticeably (train
+MSE around $0.08$, validation MSE around $0.19$ in the standardised
+domain) and the rolling-origin MAE comes out worse than ARIMAX.
+The fix is the seed ensemble: we train three independent PatchTST
+models (same architecture and hyper-parameters, different random seeds:
+42, 7 and 2024) and average their predictions at inference. The
+combined model is what we call the \textbf{PatchTST 3-seed ensemble}
+in the leaderboard.
+
+\subsection{Ensembles}
+
+Finally, we test two ways of combining the base learners.
+
+\noindent
+\textbf{Simple mean (PatchTST + LSTM).} The two strongest deep
+learning models in the project, picked \emph{a priori} by architecture
+rather than by test score, averaged with equal weights:
+\begin{equation*}
+\text{Ensemble}_{\text{mean}} = \tfrac{1}{2} \big(\hat{y}_{\text{PatchTST}} + \hat{y}_{\text{LSTM}}\big).
+\end{equation*}
+This is the simplest defensible combination because it does not use
+any test-set information to choose the weights.
+
+\noindent
+\textbf{Stacked meta-learners (Ridge and NNLS, LOWO).} As a check on
+whether a more sophisticated combiner would help, we ran two leave-one-window-out
+stacking variants: a \texttt{RidgeCV} with $\alpha \in
+\{0.01, 0.1, 1, 10, 100\}$ and a non-negative convex combination
+solved by SLSQP with weights summing to one. Both are trained on the
+predictions of the six top base learners (SARIMA, SARIMAX, ARIMAX,
+ARIMA, LSTM, PatchTST) across three windows and tested on the held-out
+fourth. The result --- foreshadowing what we describe in
+Section~\ref{sec:results} --- is that both meta-learners overfit
+badly with only 21 training points per fold and end up worse than the
+unweighted mean.
